@@ -88,7 +88,7 @@ exports.updateProfile = catchAsyncError(async (req, res, next) => {
 });
 
 exports.updatePassword = catchAsyncError(async (req, res, next) => {
-  console.log("reset password", req.body);   
+  console.log("reset password", req.body);
   const userId = req.userId;
   const { password, confirmPassword } = req.body;
   if (!password || !confirmPassword)
@@ -108,38 +108,15 @@ exports.updatePassword = catchAsyncError(async (req, res, next) => {
   res.status(203).json({ message: "Password Updated Successfully." });
 });
 
-// admin
-exports.adminLogin = catchAsyncError(async (req, res, next) => {
-  const { email, password } = req.body;
-  console.log("admin login", { email, password });
-
-  if (!email || !password)
-    return next(new ErrorHandler("Please enter your email and password", 400));
-
-  const user = await userModel.findOne({ email }).select("+password");
-  if (!user) return next(new ErrorHandler("Invalid email or password", 401));
-
-  if (user.role !== "admin")
-    return next(new ErrorHandler("Unauthorized user login.", 401));
-
-  const isPasswordMatched = await user.comparePassword(password);
-
-  if (!isPasswordMatched)
-    return next(new ErrorHandler("Invalid email or password!", 401));
-
-  sendData(user, 200, res);
-});
-
 exports.getAllUsers = catchAsyncError(async (req, res, next) => {
-  const userCount = await userModel.countDocuments();
-  console.log("userCount", userCount);
   const apiFeature = new APIFeatures(
-    userModel.find().sort({ createdAt: -1 }),
+    userModel.find().select({email: 1, firstname: 1, lastname: 1, mobile_no: 1,
+    role: 1, active: 1}).sort({ createdAt: -1 }),
     req.query
   ).search("firstname");
 
   let users = await apiFeature.query;
-  console.log("users", users);
+  console.log("users", { users });
   let filteredUserCount = users.length;
   if (req.query.resultPerPage && req.query.currentPage) {
     apiFeature.pagination();
@@ -147,8 +124,9 @@ exports.getAllUsers = catchAsyncError(async (req, res, next) => {
     console.log("filteredUserCount", filteredUserCount);
     users = await apiFeature.query.clone();
   }
+
   console.log("users", users);
-  res.status(200).json({ users, userCount, filteredUserCount });
+  res.status(200).json({ users, filteredUserCount });
 });
 
 exports.deleteUser = catchAsyncError(async (req, res, next) => {
@@ -163,8 +141,8 @@ exports.deleteUser = catchAsyncError(async (req, res, next) => {
   await cart.remove();
   await orderModel.deleteMany({ userId: id });
   await addressModel.deleteMany({ user: id });
-  await reviewModel.deleteMany({ user: id });
-  await couponModel.deleteMany({ user: id });
+  // await reviewModel.deleteMany({ user: id });
+  // await couponModel.deleteMany({ user: id });
   await user.remove();
 
   res.status(200).json({
@@ -202,7 +180,7 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
 exports.getUser = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
   console.log("get user", id);
-  const user = await userModel.findById(id);
+  const user = await userModel.findById(id).select("+dist_name +dist_email +active");
 
   if (!user) return next(new ErrorHandler("User not found.", 404));
 

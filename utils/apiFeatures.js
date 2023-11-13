@@ -33,11 +33,12 @@ class APIFeatures {
     }
 
     pagination() {
+        console.log({q: this.query.options.sort})
         const currentPage = Number(this.queryStr.currentPage);
         const resultPerPage = Number(this.queryStr.resultPerPage);
 
         const skip = resultPerPage * (currentPage - 1);
-        
+
         this.query = this.query.limit(resultPerPage).skip(skip);
         return this;
     } 

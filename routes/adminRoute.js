@@ -13,12 +13,12 @@ const {
 } = require("../controllers/userController");
 
 router.post("/user/create", auth, isAdmin, register);
-// router.get("/user/all", auth, isAdmin, getAllUsers);
+router.get("/user/all", auth, isAdmin, getAllUsers);
 router
   .route("/user/:id")
+  .get(auth, isAdmin, getUser)
   .put(auth, isAdmin, updateUser)
-  // .get(auth, isAdmin, getUser)
-  // .delete(auth, isAdmin, deleteUser);
+  .delete(auth, isAdmin, deleteUser);
 
 module.exports = router;
 
