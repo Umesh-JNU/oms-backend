@@ -7,40 +7,17 @@ const categorySchema = new mongoose.Schema(
       unique: true,
       required: [true, "Please provide the category's name."],
     },
-    description: {
+    desc: {
       type: String,
       required: [true, "Please describe the category."],
     },
-    category_image: {
+    category_img: {
       type: String,
     },
   },
   { timestamps: true }
 );
 const categoryModel = mongoose.model("Category", categorySchema);
-
-const subCategorySchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: [true, "Please provide the sub-category's name."],
-    },
-    description: {
-      type: String,
-      required: [true, "Please describe the sub-category."],
-    },
-    sub_category_image: {
-      type: String,
-    },
-    category: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Category",
-      required: [true, "Please provide belonging category."],
-    },
-  },
-  { timestamps: true }
-);
-const subCategoryModel = mongoose.model("SubCategory", subCategorySchema);
 
 const productSchema = new mongoose.Schema(
   {
@@ -52,19 +29,17 @@ const productSchema = new mongoose.Schema(
       type: String,
       // required: [true, "Please describe the product."],
     },
-    product_images: [{ type: String }],
-    rating: { type: Number, default: 0 },
-    sale: { type: Number, default: 0 },
+    // product_images: [{ type: String }],
+    product_img: {
+      type: String
+    },
+    // rating: { type: Number, default: 0 },
+    // sale: { type: Number, default: 0 },
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
       required: [true, "Please provide belonging category."],
-    },
-    sub_category: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "SubCategory",
-      required: [true, "Please provide belonging subCategory."],
-    },
+    }
   },
   { timestamps: true }
 );
@@ -81,9 +56,15 @@ const subProductSchema = new mongoose.Schema(
       type: Number,
       required: [true, "Please enter the amount of product."],
     },
-    qname: {
-      type: String,
-      required: [true, "Please provide a quantity type name"],
+    quantity: {
+      us: {
+        type: String,
+        required: [true, "Please provide a quantity as per US"]
+      },
+      canada: {
+        type: String,
+        required: [true, "Please provide a quantity as per Canada"]
+      }
     },
     stock: { type: Boolean, default: false },
     volume: { type: Number, default: 0 }
@@ -177,7 +158,6 @@ const aggregate = async (queryOptions, match) => {
 module.exports = {
   aggregate,
   categoryModel,
-  subCategoryModel,
   productModel,
   subProdModel,
 };

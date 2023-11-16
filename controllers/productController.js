@@ -10,15 +10,28 @@ const ErrorHandler = require("../utils/errorHandler");
 exports.createProduct = catchAsyncError(async (req, res, next) => {
   console.log(req.body);
   const { variant } = req.body;
+  if (!variant || variant.length === 0) {
+    return next(new ErrorHandler("Please provide at least one variant.", 400));
+  }
 
-  const product = await (
-    await (await productModel.create(req.body)).populate("category")
-  ).populate("sub_category");
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const product = (await productModel.create([req.body], { session }))[0];
 
-  variant.forEach(v => { v.pid = product._id });
-  const subProducts = await subProdModel.create(variant);
+    console.log({ product })
+    variant.forEach(v => { v.pid = product._id });
+    console.log({ variant })
+    const subProducts = await subProdModel.create([...variant], { session });
 
-  res.status(200).json({ product, subProducts });
+    await session.commitTransaction();
+    res.status(200).json({ product, subProducts });
+  } catch (error) {
+    await session.abortTransaction();
+    next(new ErrorHandler(error.message, 400));
+  } finally {
+    session.endSession();
+  }
 });
 
 exports.getAllProducts = catchAsyncError(async (req, res, next) => {
@@ -131,15 +144,6 @@ exports.getProductAdmin = catchAsyncError(async (req, res, next) => {
     { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
-        from: "subcategories",
-        localField: "sub_category",
-        foreignField: "_id",
-        as: "sub_category"
-      }
-    },
-    { $unwind: { path: "$sub_category", preserveNullAndEmptyArrays: true } },
-    {
-      $lookup: {
         from: "subproducts",
         localField: "_id",
         foreignField: "pid",
@@ -165,14 +169,14 @@ exports.getProduct = catchAsyncError(async (req, res, next) => {
 });
 
 exports.updateProduct = catchAsyncError(async (req, res, next) => {
-  console.log(req.body);
+  console.log("update product", req.body);
   const { id } = req.params;
 
   const product = await productModel.findByIdAndUpdate(id, req.body, {
     new: true,
     runValidators: true,
     useFindAndModify: false,
-  }).populate("category").populate("sub_category");
+  }).populate("category");
   if (!product) return next(new ErrorHandler("Product not found", 404));
 
   res.status(200).json({ product });
@@ -206,8 +210,7 @@ exports.deleteProduct = catchAsyncError(async (req, res, next) => {
 
 exports.createSubProduct = catchAsyncError(async (req, res, next) => {
   console.log(req.body);
-  const { pid, qname, amount, volume } = req.body;
-  const subProduct = await subProdModel.create({ pid, qname, amount, volume, stock: parseInt(volume) > 0 });
+  const subProduct = await subProdModel.create(req.body);
 
   res.status(200).json({ subProduct });
 });

@@ -5,20 +5,25 @@ class APIFeatures {
     }
 
     search(key) {
-        const keyword = this.queryStr.keyword ? {
-            [key]: {
-                $regex: this.queryStr.keyword,
-                $options: "i",
-            },
-        } : {}
+        if (this.queryStr.keyword) {
+            console.log("sdkjfksdhfk")
+            var keyword = {
+                [key]: {
+                    $regex: this.queryStr.keyword,
+                    $options: "i",
+                }
+            }
+        } else {
+            var keyword = {}
+        }
 
         console.log("keyword", keyword);
-        this.query = this.query.find({...keyword});
+        this.query = this.query.find({ ...keyword });
         return this;
     }
 
     filter() {
-        const queryCopy = {...this.queryStr}
+        const queryCopy = { ...this.queryStr }
 
         // Removing field for category
         const removeFields = ["keyword", "currentPage", "resultPerPage"];
@@ -33,7 +38,7 @@ class APIFeatures {
     }
 
     pagination() {
-        console.log({q: this.query.options.sort})
+        console.log({ q: this.query.options.sort })
         const currentPage = Number(this.queryStr.currentPage);
         const resultPerPage = Number(this.queryStr.resultPerPage);
 
@@ -41,7 +46,7 @@ class APIFeatures {
 
         this.query = this.query.limit(resultPerPage).skip(skip);
         return this;
-    } 
+    }
 }
 
 module.exports = APIFeatures

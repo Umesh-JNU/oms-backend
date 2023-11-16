@@ -2,7 +2,6 @@ const mongoose = require("mongoose");
 
 mongoose.set("strictQuery", false);
 
-console.log({ dbURL: process.env.DATABASE_URL });
 module.exports = () => {
   mongoose
     .connect(process.env.DATABASE_URL)

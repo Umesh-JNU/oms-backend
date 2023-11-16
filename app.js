@@ -19,8 +19,8 @@ app.get("/", (req, res, next) => res.json({ anc: "abc" }));
 
 const adminRoute = require("./routes/adminRoute");
 const userRoute = require("./routes/userRoute");
-// const productRoute = require("./routes/productRoute");
-// const categoryRoute = require("./routes/categoryRoute");
+const categoryRoute = require("./routes/categoryRoute");
+const productRoute = require("./routes/productRoute");
 // const subCategoryRoute = require("./routes/subCategoryRoute");
 // const cartRoute = require("./routes/cartRoute");
 // const orderRoute = require("./routes/orderRoute");
@@ -32,8 +32,8 @@ const userRoute = require("./routes/userRoute");
 
 app.use("/api/admin", adminRoute);
 app.use("/api/user", userRoute);
-// app.use("/api/product", productRoute);
-// app.use("/api/category", categoryRoute);
+app.use("/api/category", categoryRoute);
+app.use("/api/product", productRoute);
 // app.use("/api/subCategory", subCategoryRoute);
 // app.use("/api/cart", cartRoute);
 // app.use("/api/order", orderRoute);

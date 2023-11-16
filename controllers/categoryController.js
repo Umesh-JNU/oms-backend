@@ -9,16 +9,13 @@ const catchAsyncError = require("../utils/catchAsyncError");
 const ErrorHandler = require("../utils/errorHandler");
 
 exports.createCategory = catchAsyncError(async (req, res, next) => {
-  const { name, description, category_image } = req.body;
-  const category = await categoryModel.create({
-    name,
-    description,
-    category_image,
-  });
+  console.log("create category", req.body);
+  const category = await categoryModel.create(req.body);
   res.status(200).json({ category });
 });
 
 exports.getAllCategories = catchAsyncError(async (req, res, next) => {
+  console.log(req.query)
   const categoryCount = await categoryModel.countDocuments();
   console.log("categoryCount", categoryCount);
   const apiFeature = new APIFeatures(
@@ -36,6 +33,7 @@ exports.getAllCategories = catchAsyncError(async (req, res, next) => {
     categories = await apiFeature.query.clone();
     console.log("categories1", categories);
   }
+  console.log({ categories, categoryCount, filteredCategoryCount })
   res.status(200).json({ categories, categoryCount, filteredCategoryCount });
 });
 
@@ -79,29 +77,3 @@ exports.getAllProducts = catchAsyncError(async (req, res, next) => {
   res.status(200).json({ products });
 });
 
-exports.getSubCategory = catchAsyncError(async (req, res, next) => {
-  const { id } = req.params;
-  const subCategories = await subCategoryModel.find({ category: id });
-  res.status(200).json({ subCategories });
-});
-
-exports.getAllSubCategory = catchAsyncError(async (req, res, next) => {
-  const category_list = await categoryModel.find();
-  const categories = await Promise.all(
-    category_list.map(async (category) => {
-      const subCategories = await subCategoryModel
-        .find({ category: category._id })
-        .select(["_id", "name"]);
-
-      return {
-        _id: {
-          cat_id: category._id,
-          name: category.name,
-        },
-        subCategories,
-      };
-    })
-  );
-
-  res.status(200).json({ categories });
-});

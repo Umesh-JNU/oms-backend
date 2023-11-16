@@ -3,8 +3,8 @@ const router = express.Router();
 
 const { auth, isAdmin } = require("../middlewares/auth");
 
+// ------------------------------ USER ---------------------------------
 const {
-  adminLogin,
   getAllUsers,
   getUser,
   updateUser,
@@ -14,40 +14,67 @@ const {
 
 router.post("/user/create", auth, isAdmin, register);
 router.get("/user/all", auth, isAdmin, getAllUsers);
-router
-  .route("/user/:id")
+router.route("/user/:id")
   .get(auth, isAdmin, getUser)
   .put(auth, isAdmin, updateUser)
   .delete(auth, isAdmin, deleteUser);
 
-module.exports = router;
+// ---------------------------- CATEGORY ------------------------------
+const {
+  createCategory,
+  deleteCategory,
+  updateCategory,
+} = require("../controllers/categoryController");
 
-// const {
+router.post("/category/create", auth, isAdmin, createCategory);
+router.route("/category/:id")
+  .put(auth, isAdmin, updateCategory)
+  .delete(auth, isAdmin, deleteCategory);
+
+// ---------------------------- PRODUCTS ------------------------------
+const {
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  deleteSubProduct,
+  createSubProduct,
+  getAllProducts,
+  getProductAdmin,
+} = require("../controllers/productController");
+
+router.post("/product/create", auth, isAdmin, createProduct);
+router.get("/product/all", auth, isAdmin, getAllProducts);
+router.route("/product/:id")
+  .get(auth, isAdmin, getProductAdmin)
+  .put(auth, isAdmin, updateProduct)
+  .delete(auth, isAdmin, deleteProduct);
+
+router.post("/sub-product/create", auth, isAdmin, createSubProduct);
+router.delete("/sub-product/:id", auth, isAdmin, deleteSubProduct);
+
+// ----------------------------------- IMAGE -----------------------------------------
+const { upload } = require("../utils/s3");
+const {
 //   getStatistics,
 //   getAll,
-//   postSingleImage,
-//   postMultipleImages,
-// } = require("../controllers/adminController");
-// const {
-//   createCategory,
-//   deleteCategory,
-//   updateCategory,
-// } = require("../controllers/categoryController");
+  postSingleImage,
+  postMultipleImages,
+} = require("../controllers/adminController");
+
+router.post("/image", upload.single("image"), postSingleImage);
+router.post("/multi-image", upload.array("image"), postMultipleImages);
+
+module.exports = router;
+
+
+
 // const {
 //   getAllOrders,
 //   deleteOrder,
 //   getOrderById,
 //   updateOrderStatus,
 // } = require("../controllers/orderController");
-// const {
-//   createProduct,
-//   updateProduct,
-//   deleteProduct,
-//   deleteSubProduct,
-//   createSubProduct,
-//   getAllProducts,
-//   getProductAdmin,
-// } = require("../controllers/productController");
+
 // const {
 //   createPromotion,
 //   updatePromotion,
@@ -77,7 +104,6 @@ module.exports = router;
 // } = require("../controllers/shippingController");
 
 // const { auth, isAdmin } = require("../middlewares/auth");
-// const { s3Uploadv2, upload, s3UploadMulti } = require("../utils/s3");
 // const { createSale, getAllSale, getSale, updateSale, deleteSale } = require("../controllers/saleController");
 
 // router.get("/all", getAll);
@@ -92,11 +118,6 @@ module.exports = router;
 //   .get(auth, isAdmin, getOrderById)
 //   .delete(auth, isAdmin, deleteOrder);
 
-// router.post("/category/create", auth, isAdmin, createCategory);
-// router
-//   .route("/category/:id")
-//   .put(auth, isAdmin, updateCategory)
-//   .delete(auth, isAdmin, deleteCategory);
 
 // router.post("/subCategory/create", auth, isAdmin, createSubCategory);
 // router
@@ -104,16 +125,9 @@ module.exports = router;
 //   .put(auth, isAdmin, updateSubCategory)
 //   .delete(auth, isAdmin, deleteSubCategory);
 
-// router.post("/product/create", auth, isAdmin, createProduct);
-// router.get("/product/all", auth, isAdmin, getAllProducts);
-// router
-//   .route("/product/:id")
-//   .get(auth, isAdmin, getProductAdmin)
-//   .put(auth, isAdmin, updateProduct)
-//   .delete(auth, isAdmin, deleteProduct);
 
-// router.post("/sub-product/create", auth, isAdmin, createSubProduct);
-// router.delete("/sub-product/:id", auth, isAdmin, deleteSubProduct);
+
+
 
 // router.get("/review/all", auth, isAdmin, allReviews);
 // router.delete("/review/:id", auth, isAdmin, deleteReview);
@@ -150,6 +164,5 @@ module.exports = router;
 //   .put(auth, isAdmin, updateShipping)
 //   .delete(auth, isAdmin, deleteShipping);
 
-// router.post("/image", upload.single("image"), postSingleImage);
-// router.post("/multi-image", upload.array("image"), postMultipleImages);
+
 
