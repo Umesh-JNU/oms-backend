@@ -1,12 +1,18 @@
+const fs = require('fs');
+const path = require('path');
+const { default: mongoose } = require("mongoose");
+
+const ErrorHandler = require("../utils/errorHandler");
+const catchAsyncError = require("../utils/catchAsyncError");
+const APIFeatures = require("../utils/apiFeatures");
+const sendEmail = require("../utils/sendEmail");
+
 const userModel = require("../models/userModel");
 const cartModel = require("../models/cartModel");
 const couponModel = require("../models/couponModel");
 const orderModel = require("../models/orderModel");
 const addressModel = require("../models/addressModel");
 const reviewModel = require("../models/reviewModel");
-const catchAsyncError = require("../utils/catchAsyncError");
-const ErrorHandler = require("../utils/errorHandler");
-const APIFeatures = require("../utils/apiFeatures");
 
 const sendData = (user, statusCode, res) => {
   const token = user.getJWTToken();
@@ -20,13 +26,46 @@ const sendData = (user, statusCode, res) => {
 exports.register = catchAsyncError(async (req, res, next) => {
   console.log("user register", req.body);
 
-  const user = await userModel.create(req.body);
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
 
-  await cartModel.create({
-    user: user._id,
-    items: [],
-  });
-  sendData(user, 200, res);
+    const user = (await userModel.create([req.body], { session }))[0];
+    console.log({ user })
+
+    await cartModel.create([{
+      user: user._id,
+      items: [],
+    }], { session });
+
+    const userDetails = {
+      name: req.body.firstname + ' ' + req.body.lastname,
+      password: req.body.password,
+    }
+    const template = fs.readFileSync(path.join(__dirname + '/templates', "userRegister.html"), "utf-8");
+
+    // /{{(\w+)}}/g - match {{Word}} globally
+    const renderedTemplate = template.replace(/{{(\w+)}}/g, (match, key) => {
+      console.log({ match, key })
+      return userDetails[key] || match;
+    });
+
+    await sendEmail({
+      email: user.email,
+      subject: 'Successful Registration',
+      message: renderedTemplate
+    });
+
+    await session.commitTransaction();
+    sendData(user, 200, res);
+
+  } catch (error) {
+    await session.abortTransaction();
+    next(new ErrorHandler(error.message, 400));
+
+  } finally {
+    session.endSession();
+  }
 });
 
 // exports.getMyCoupon = catchAsyncError(async (req, res, next) => {
@@ -110,8 +149,10 @@ exports.updatePassword = catchAsyncError(async (req, res, next) => {
 
 exports.getAllUsers = catchAsyncError(async (req, res, next) => {
   const apiFeature = new APIFeatures(
-    userModel.find().select({email: 1, firstname: 1, lastname: 1, mobile_no: 1,
-    role: 1, active: 1}).sort({ createdAt: -1 }),
+    userModel.find().select({
+      email: 1, firstname: 1, lastname: 1, mobile_no: 1,
+      role: 1, active: 1
+    }).sort({ createdAt: -1 }),
     req.query
   ).search("firstname");
 

@@ -50,6 +50,10 @@ const userSchema = new mongoose.Schema(
       minLength: [4, "Distributor's name should have more that 4 characters"],
       select: false
     },
+    dist_mob_no: {
+      type: Number,
+      required: [true, "Distributor's Mobile number is required."]
+    },
     // free_ship: {
     //   type: Boolean,
     //   default: false

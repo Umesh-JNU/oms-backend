@@ -27,7 +27,7 @@ const productSchema = new mongoose.Schema(
     },
     description: {
       type: String,
-      // required: [true, "Please describe the product."],
+      maxLength: [250, "Product Description should have maximum 250 characters."]      // required: [true, "Please describe the product."],
     },
     // product_images: [{ type: String }],
     product_img: {
@@ -58,11 +58,11 @@ const subProductSchema = new mongoose.Schema(
     },
     quantity: {
       us: {
-        type: String,
+        type: Number,
         required: [true, "Please provide a quantity as per US"]
       },
       canada: {
-        type: String,
+        type: Number,
         required: [true, "Please provide a quantity as per Canada"]
       }
     },
@@ -103,41 +103,41 @@ const aggregate = async (queryOptions, match) => {
               as: "category"
             }
           },
-          { $unwind: "$category" },
-          {
-            $lookup: {
-              from: "subcategories",
-              localField: "sub_category",
-              foreignField: "_id",
-              as: "sub_category"
-            }
-          },
-          { $unwind: "$sub_category" }
+          { $unwind: "$category" }
+          // {
+          //   $lookup: {
+          //     from: "subcategories",
+          //     localField: "sub_category",
+          //     foreignField: "_id",
+          //     as: "sub_category"
+          //   }
+          // },
+          // { $unwind: "$sub_category" }
         ],
         as: "pid"
       }
     },
     { $unwind: "$pid" },
     { $sort: { "pid.createdAt": -1 } },
-    {
-      $addFields: {
-        subProducts: {
-          $map: {
-            input: "$subProducts",
-            as: "subProduct",
-            in: {
-              $mergeObjects: [
-                "$$subProduct", {
-                  updatedAmount: {
-                    $subtract: ["$$subProduct.amount", { $multiply: [0.01, "$$subProduct.amount", "$pid.sale"] }]
-                  }
-                }
-              ]
-            }
-          }
-        }
-      }
-    },
+    // {
+    //   $addFields: {
+    //     subProducts: {
+    //       $map: {
+    //         input: "$subProducts",
+    //         as: "subProduct",
+    //         in: {
+    //           $mergeObjects: [
+    //             "$$subProduct", {
+    //               updatedAmount: {
+    //                 $subtract: ["$$subProduct.amount", { $multiply: [0.01, "$$subProduct.amount", "$pid.sale"] }]
+    //               }
+    //             }
+    //           ]
+    //         }
+    //       }
+    //     }
+    //   }
+    // },
     // { $project: { "subProducts.pid": 0 } },
     // { $addFields: { "_id.subProducts": "$subProducts" } },
     // { $project: { subProducts: 0 } },

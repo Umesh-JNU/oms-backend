@@ -38,6 +38,7 @@ exports.getAllCategories = catchAsyncError(async (req, res, next) => {
 });
 
 exports.getCategory = catchAsyncError(async (req, res, next) => {
+  console.log("get caategory")
   const { id } = req.params;
   const category = await categoryModel.findById(id);
   if (!category) return next(new ErrorHandler("Category not found", 404));
@@ -69,10 +70,17 @@ exports.deleteCategory = catchAsyncError(async (req, res, next) => {
 });
 
 exports.getAllProducts = catchAsyncError(async (req, res, next) => {
-  const { id } = req.params;
-  let products;
-  if (id === "64407ccb7d5153dc445477d8") products = await aggregate([], { sale: { $gt: 0 } });
-  else products = await aggregate([], { category: mongoose.Types.ObjectId(id) });
+  const { name } = req.params;
+  console.log({ name })
+
+  var categoryQry;
+  if (name !== 'null') {
+    const category = await categoryModel.findOne({ name })
+    var categoryQry = { category: mongoose.Types.ObjectId(category._id) };
+  }
+  const products = await aggregate([], categoryQry);
+  // if (id === "64407ccb7d5153dc445477d8") products = await aggregate([], { sale: { $gt: 0 } });
+  // else products = await aggregate([], { category: mongoose.Types.ObjectId(category._id) });
 
   res.status(200).json({ products });
 });

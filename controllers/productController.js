@@ -121,6 +121,7 @@ exports.getAllProducts = catchAsyncError(async (req, res, next) => {
     // return res.status(200).json({ products, productCount, filteredProductCount });
   }
   else {
+    console.log("get product in frontend")
     var products = await aggregate(queryOptions, match);
   }
 

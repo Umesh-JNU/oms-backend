@@ -11,8 +11,9 @@ const calc_total = (cart) => {
 
   if (cart.items.length > 0) {
     cart.items.forEach(({ product, quantity }) => {
+      console.log({ product, quantity })
       const amt = product?.amount;
-      const discount = product.pid?.sale;
+      const discount = product.pid?.sale ? product.pid?.sale : 0;
       const updatedAmount = amt * (1 - discount * 0.01)
       total += updatedAmount * quantity;
       if (updatedAmount !== amt) inSalePrice.push({ id: product._id, updatedAmount })
