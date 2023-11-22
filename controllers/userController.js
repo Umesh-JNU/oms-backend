@@ -82,11 +82,15 @@ exports.login = catchAsyncError(async (req, res, next) => {
   if (!email || !password)
     return next(new ErrorHandler("Please enter your email and password", 400));
 
-  const user = await userModel.findOne({ email, active: true }).select("+password");
+  const user = await userModel.findOne({ email }).select("+password +active");
   if (!user) {
     return next(new ErrorHandler("Invalid email or password", 401));
   }
 
+  console.log({ user });
+  if (user.active === false) {
+    return next(new ErrorHandler("Your account is deactivated. Kindly reach out Manufacturer", 400));
+  }
   const isPasswordMatched = await user.comparePassword(password);
   if (!isPasswordMatched)
     return next(new ErrorHandler("Invalid email or password!", 401));
