@@ -175,15 +175,15 @@ const getShippingCharge = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Cart not found", 404));
 
   const [total, inSalePrice] = calc_total(cart);
-  const [charge, message] = calc_shipping(total, addr, next);
+  // const [charge, message] = calc_shipping(total, addr, next);
 
-  console.log({ total, charge })
+  console.log({ total })
   const user = await userModel.findById(req.userId);
   res.status(200).json({
     total,
-    charge,
+    charge: 0,
     free_ship: user.free_ship,
-    message
+    // message
   })
 });
 

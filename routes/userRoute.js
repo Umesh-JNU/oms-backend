@@ -32,7 +32,7 @@ router
   .put(auth, updateAddr)
   .delete(auth, deleteAddr);
 
-// router.get("/calc-shipping", auth, getShippingCharge);
+router.get("/calc-shipping", auth, getShippingCharge);
 
 // router.get("/coupons", auth, getMyCoupon);
 

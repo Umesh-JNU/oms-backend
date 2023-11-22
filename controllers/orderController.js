@@ -47,7 +47,7 @@ exports.createOrder = catchAsyncError(async (req, res, next) => {
   const products = cart.items.map((item) => {
     const { product, quantity } = item;
     const amt = product.amount;
-    const discount = product.pid.sale;
+    const discount = product.pid.sale ? product.pid.sale : 0;
     const updatedAmount = amt * (1 - discount * 0.01);
     total += updatedAmount * quantity;
     console.log({ product, quantity, amt, discount, updatedAmount });
@@ -66,7 +66,8 @@ exports.createOrder = catchAsyncError(async (req, res, next) => {
   if (!addr) return next(new ErrorHandler("Address not found", 404));
 
   const { province, town, street, post_code, unit } = addr;
-  const [charge, _] = calc_shipping(total, addr, next);
+  // const [charge, _] = calc_shipping(total, addr, next);
+  const charge = 0;
 
   const unique_id = uuid();
   const orderId = unique_id.slice(0, 6);
@@ -110,7 +111,7 @@ exports.createOrder = catchAsyncError(async (req, res, next) => {
       post_code,
       street,
       town,
-      unit,
+      // unit,
       mobile_no
     },
     orderId: '#' + orderId,
