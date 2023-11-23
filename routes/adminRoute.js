@@ -80,7 +80,7 @@ router
 // ----------------------------------- ORDER -----------------------------------------
 const {
   getAllOrders,
-//   deleteOrder,
+  deleteOrder,
   getOrderById,
   updateOrderStatus,
 } = require("../controllers/orderController");
@@ -90,7 +90,7 @@ router.put("/order/:id/update/status", auth, isAdmin, updateOrderStatus);
 router
   .route("/order/:id")
   .get(auth, isAdmin, getOrderById)
-//   .delete(auth, isAdmin, deleteOrder);
+  .delete(auth, isAdmin, deleteOrder);
 module.exports = router;
 
 
