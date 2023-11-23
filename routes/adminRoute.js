@@ -64,16 +64,38 @@ const {
 router.post("/image", upload.single("image"), postSingleImage);
 router.post("/multi-image", upload.array("image"), postMultipleImages);
 
+// ----------------------------------- FAQ -----------------------------------------
+const {
+  createFaq,
+  updateFaq,
+  deleteFaq,
+} = require("../controllers/faqController");
+
+router.post("/faq/create", auth, isAdmin, createFaq);
+router
+  .route("/faq/:id")
+  .put(auth, isAdmin, updateFaq)
+  .delete(auth, isAdmin, deleteFaq);
+  
+// ----------------------------------- ORDER -----------------------------------------
+const {
+  getAllOrders,
+//   deleteOrder,
+  getOrderById,
+  updateOrderStatus,
+} = require("../controllers/orderController");
+
+router.get("/orders/all", auth, isAdmin, getAllOrders);
+router.put("/order/:id/update/status", auth, isAdmin, updateOrderStatus);
+router
+  .route("/order/:id")
+  .get(auth, isAdmin, getOrderById)
+//   .delete(auth, isAdmin, deleteOrder);
 module.exports = router;
 
 
 
-// const {
-//   getAllOrders,
-//   deleteOrder,
-//   getOrderById,
-//   updateOrderStatus,
-// } = require("../controllers/orderController");
+
 
 // const {
 //   createPromotion,
@@ -92,11 +114,7 @@ module.exports = router;
 //   deleteQuantity,
 //   createQuantity,
 // } = require("../controllers/quantityController");
-// const {
-//   createFaq,
-//   updateFaq,
-//   deleteFaq,
-// } = require("../controllers/faqController");
+
 // const {
 //   createShipping,
 //   updateShipping,
@@ -110,24 +128,11 @@ module.exports = router;
 // router.get("/statistics/:time", auth, isAdmin, getStatistics);
 // router.post("/login", adminLogin);
 
-
-// router.get("/orders/all", auth, isAdmin, getAllOrders);
-// router.put("/order/:id/update/status", auth, isAdmin, updateOrderStatus);
-// router
-//   .route("/order/:id")
-//   .get(auth, isAdmin, getOrderById)
-//   .delete(auth, isAdmin, deleteOrder);
-
-
 // router.post("/subCategory/create", auth, isAdmin, createSubCategory);
 // router
 //   .route("/subCategory/:id")
 //   .put(auth, isAdmin, updateSubCategory)
 //   .delete(auth, isAdmin, deleteSubCategory);
-
-
-
-
 
 // router.get("/review/all", auth, isAdmin, allReviews);
 // router.delete("/review/:id", auth, isAdmin, deleteReview);
@@ -151,12 +156,6 @@ module.exports = router;
 //   .get(auth, isAdmin, getSale)
 //   .put(auth, isAdmin, updateSale)
 //   .delete(auth, isAdmin, deleteSale);
-
-// router.post("/faq/create", auth, isAdmin, createFaq);
-// router
-//   .route("/faq/:id")
-//   .put(auth, isAdmin, updateFaq)
-//   .delete(auth, isAdmin, deleteFaq);
 
 // router.post("/shipping/create", auth, isAdmin, createShipping);
 // router

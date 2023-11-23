@@ -10,34 +10,28 @@ exports.createFaq = catchAsyncError(async (req, res, next) => {
 });
 
 exports.getAllFaq = catchAsyncError(async (req, res, next) => {
-  console.log("get all faq", req.query);
-  const { keyword, currentPage, resultPerPage } = req.query;
+  const apiFeature = new APIFeatures(
+    faqModel.find().sort({ createdAt: -1 }),
+    req.query
+  ).search("question");
 
-  let match = {};
-  if (keyword) {
-    match = { type: keyword };
+  let faqs = await apiFeature.query;
+  console.log("faqs", { faqs });
+  let filteredFAQCount = faqs.length;
+  if (req.query.resultPerPage && req.query.currentPage) {
+    apiFeature.pagination();
+
+    console.log("filteredFAQCount", filteredFAQCount);
+    faqs = await apiFeature.query.clone();
   }
 
-  const queryOptions = [];
-  if (currentPage && resultPerPage) {
-    const r = parseInt(resultPerPage);
-    const c = parseInt(currentPage);
-
-    const skip = r * (c - 1);
-    queryOptions.push({ $skip: skip });
-    queryOptions.push({ $limit: r });
-  }
-
-  let faqs = await aggregate(queryOptions, match);
-  if (faqs.length === 0) faqs = {};
-  else faqs = faqs[0].faqs;
-
-  let filteredFaqCount = faqs.length;
-  res.status(200).json({ faqs, filteredFaqCount });
+  console.log("faqs", faqs);
+  res.status(200).json({ faqs, filteredFAQCount });
 });
 
 exports.getFaq = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
+  console.log("faq id", { id })
   const faq = await faqModel.findById(id);
   if (!faq) return next(new ErrorHandler('FAQ not found', 404));
   res.status(200).json({ faq });

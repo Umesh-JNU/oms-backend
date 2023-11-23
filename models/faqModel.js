@@ -10,11 +10,11 @@ const faqSchema = new mongoose.Schema(
       type: String,
       required: [true, "Answer is required."],
     },
-    type: {
-      type: String,
-      required: [true, 'Type for FAQ is required'],
-      enum: ['top-most', 'shipping', 'payment', 'ordering']
-    }
+    // type: {
+    //   type: String,
+    //   required: [true, 'Type for FAQ is required'],
+    //   enum: ['top-most', 'shipping', 'payment', 'ordering']
+    // }
   },
   { timestamps: true }
 );

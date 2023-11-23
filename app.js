@@ -23,10 +23,10 @@ const categoryRoute = require("./routes/categoryRoute");
 const productRoute = require("./routes/productRoute");
 const cartRoute = require("./routes/cartRoute");
 const orderRoute = require("./routes/orderRoute");
+const faqRoute = require('./routes/faqRoute');
 // const promotionRoute = require('./routes/promotionRoute');
 // const quantityRoute = require('./routes/quantityRoute');
 // const reviewRoute = require('./routes/reviewRoute');
-// const faqRoute = require('./routes/faqRoute');
 // const shippingRoute = require('./routes/shippingRoute');
 
 app.use("/api/admin", adminRoute);
@@ -35,10 +35,10 @@ app.use("/api/category", categoryRoute);
 app.use("/api/product", productRoute);
 app.use("/api/cart", cartRoute);
 app.use("/api/order", orderRoute);
+app.use("/api/faq", faqRoute);
 // app.use("/api/promotion", promotionRoute);
 // app.use("/api/quantity", quantityRoute);
 // app.use("/api/review", reviewRoute);
-// app.use("/api/faq", faqRoute);
 // app.use("/api/shipping", shippingRoute);
 
 app.all('*', async (req, res) => {
