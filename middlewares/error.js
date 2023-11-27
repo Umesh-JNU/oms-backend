@@ -25,6 +25,7 @@ module.exports = (err, req, res, next) => {
   }
 
   if (err.name === "ValidationError") {
+    console.log({ err: err.name, e: Object.values(err.errors)[0].message })
 
     // res.send(Object.values(err.errors))
     // console.log({ err })

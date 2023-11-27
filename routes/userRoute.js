@@ -13,6 +13,8 @@ const {
   getProfile,
   updateProfile,
   updatePassword,
+  forgotPassword,
+  resetPassword,
   getMyCoupon,
 } = require("../controllers/userController");
 const { auth } = require("../middlewares/auth");
@@ -22,6 +24,10 @@ const router = express.Router();
 router.post("/login", login);
 router.get("/user-profile", auth, getProfile);
 router.put("/update-profile", auth, updateProfile);
+router.put("/update-password", auth, updatePassword);
+router.post("/forgot-password", forgotPassword);
+router.put("/reset-password/:token", resetPassword);
+
 router.put("/reset-password", auth, updatePassword);
 
 router.post("/address/new", auth, addAddr);

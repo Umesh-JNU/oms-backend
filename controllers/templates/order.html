@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Confirmation - Your Order #123456</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .header {
+      background-color: #f8f8f8;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .order-details {
+      padding: 20px;
+    }
+
+    .thank-you {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .order-summary {
+      margin-top: 20px;
+    }
+
+    .item {
+      margin-bottom: 10px;
+    }
+
+    .total {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+
+    .footer {
+      background-color: #f8f8f8;
+      padding: 10px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Order Summary</h1>
+    </div>
+
+    <div class="order-details">
+      <p class="thank-you">Dear {{username}},</p>
+      <p>Thank you for shopping with OMS! Your order has been successfully placed, and we're excited to share the details with you.</p>
+
+      <div class="order-summary">
+        <h2>Order Details</h2>
+        <p><strong>Order Number:</strong> {{orderId}}</p>
+        <p><strong>Order Date:</strong> {{createdAt}}</p>
+        <p><strong>Delivery Address:</strong> {{address}}</p>
+
+        <p><strong>Products</strong></p>
+        {{items}}
+
+        <p class="total"><strong>Order Total:</strong> {{amount}}</p>
+      </div>
+
+      <p>You can track your order's status by logging into your account on our website.</p>
+
+      <p>If you have any questions or concerns regarding your order, please contact with our support team, and our customer support team will be happy to assist you.</p>
+
+      <p>Thank you for choosing OMS!</p>
+    </div>
+
+    <div class="footer">
+      Best regards,
+      <br />
+      <a href="https://oms-frontend.netlify.app/" target="_blank" style="text-decoration: none; "><b>OMS</b></a>
+    </div>
+  </div>
+</body>
+</html>

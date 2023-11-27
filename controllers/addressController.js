@@ -91,8 +91,8 @@ const getAllAddr = catchAsyncError(async (req, res, next) => {
   const userId = req.userId;
 
   const address_book = await addrModel.find({ user: userId });
-
-  res.status(200).json({ address_book });
+  const defaultAddress = await addrModel.findOne({ user: userId, defaultAddress: true });
+  res.status(200).json({ address_book, defaultAddress });
 });
 
 const deleteAddr = catchAsyncError(async (req, res, next) => {

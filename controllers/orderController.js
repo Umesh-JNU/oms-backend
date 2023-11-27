@@ -1,6 +1,11 @@
+const fs = require('fs');
+const path = require('path');
+const { default: mongoose } = require("mongoose");
+
 const Order = require("../models/orderModel");
 const cartModel = require("../models/cartModel");
 const { v4: uuid } = require("uuid");
+const sendEmail = require("../utils/sendEmail");
 const catchAsyncError = require("../utils/catchAsyncError");
 const APIFeatures = require("../utils/apiFeatures");
 const ErrorHandler = require("../utils/errorHandler");
@@ -13,6 +18,11 @@ const { productModel, subProdModel } = require("../models/productModel");
 exports.createOrder = catchAsyncError(async (req, res, next) => {
   const userId = req.userId;
 
+  const user = await userModel.findById(userId);
+  if (!user) {
+    return next(new ErrorHandler("User Not Found.", 404));
+  }
+
   const cart = await cartModel
     .findOne({ user: userId })
     .populate({
@@ -24,102 +34,143 @@ exports.createOrder = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Order can't placed. Add product to cart.", 401));
   console.log(cart.items[0].product);
 
-  // update the product status
-  for (var i in cart.items) {
-    console.log(i, cart.items[i]);
-    const { product, quantity } = cart.items[i];
-    if (quantity > product.volume) {
-      return next(new ErrorHandler("Some of items in your cart is out of stock.", 400));
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    // update the product status
+    for (var i in cart.items) {
+      console.log(i, cart.items[i]);
+      const { product, quantity } = cart.items[i];
+      if (quantity > product.volume) {
+        return next(new ErrorHandler("Some of items in your cart is out of stock.", 400));
+      }
+
+      const prod = await subProdModel.findById(product._id);
+      if (!prod) {
+        return next(new ErrorHandler("Something went wrong.", 400));
+      }
+
+      prod.volume = product.volume - quantity;
+      prod.stock = (product.volume - quantity) > 0;
+      await prod.save({ session });
+      // await subProdModel.findByIdAndUpdate(product._id, { volume: product.volume - quantity });
     }
 
-    const prod = await subProdModel.findById(product._id);
-    if (!prod) {
-      return next(new ErrorHandler("Something went wrong.", 400));
+    var total = 0;
+    let items = '';
+    const products = cart.items.map((item, i) => {
+      const { product, quantity } = item;
+      const amt = product.amount;
+      const discount = product.pid.sale ? product.pid.sale : 0;
+      const updatedAmount = amt * (1 - discount * 0.01);
+      const subTotal = updatedAmount * quantity;
+      total += subTotal;
+      console.log({ product, quantity, amt, subTotal, discount, updatedAmount });
+
+      items += `
+      <div class="item">
+        <p><strong>${i + 1}. ${product?.pid?.name}</strong> - $${amt}</p>
+        <p>- Quantity: ${quantity}</p>
+        <p>- Subtotal: $${subTotal}</p>
+      </div>`;
+
+      return {
+        quantity,
+        product: product._doc,
+        parent_prod: product.pid._doc,
+        updatedAmount,
+      };
+    });
+
+    const { addr_id, mobile_no, coupon_code } = req.body;
+
+    const addr = await addressModel.findById(addr_id);
+    if (!addr) return next(new ErrorHandler("Address not found", 404));
+
+    const { province, town, street, post_code } = addr;
+    // const [charge, _] = calc_shipping(total, addr, next);
+    const charge = 0;
+
+    const unique_id = uuid();
+    const orderId = unique_id.slice(0, 6);
+
+    console.log("orderId ", orderId);
+    console.log('order create', req.body);
+
+    if (coupon_code) {
+      const coupon = await couponModel.findOne({ user: userId, _id: coupon_code });
+
+      if (!coupon) return next(new ErrorHandler("Invalid coupon or has been expired.", 400));
+      console.log("coupon", coupon);
+      console.log({ now: Date.now(), createdAt: coupon.createdAt, diff: Date.now() - coupon.createdAt })
+
+      if (Date.now() - coupon.createdAt <= 30 * 60 * 60 * 1000) {
+        total -= coupon.amount;
+
+        coupon.status = "used";
+        await coupon.save({ session });
+      }
+      else {
+        coupon.status = "expired";
+        await coupon.save({ session });
+        return next(new ErrorHandler("Coupon is expired.", 401));
+      }
     }
 
-    prod.volume = product.volume - quantity;
-    prod.stock = (product.volume - quantity) > 0 ;
-    await prod.save();
-    // await subProdModel.findByIdAndUpdate(product._id, { volume: product.volume - quantity });
-  }
+    if (!user.free_ship) {
+      total += charge;
+    }
+    // total += charge;
+    const savedOrder = (await Order.create([{
+      userId: userId,
+      products: products,
+      amount: total,
+      shipping_charge: charge,
+      free_ship: user.free_ship,
+      address: {
+        province,
+        post_code,
+        street,
+        town,
+        mobile_no
+      },
+      orderId: '#' + orderId,
+    }], { session }))[0];
 
-  var total = 0;
-  const products = cart.items.map((item) => {
-    const { product, quantity } = item;
-    const amt = product.amount;
-    const discount = product.pid.sale ? product.pid.sale : 0;
-    const updatedAmount = amt * (1 - discount * 0.01);
-    total += updatedAmount * quantity;
-    console.log({ product, quantity, amt, discount, updatedAmount });
+    await cartModel.updateOne({ user: req.userId }, { $set: { items: [] } }, { session });
 
-    return {
-      quantity,
-      product: product._doc,
-      parent_prod: product.pid._doc,
-      updatedAmount,
+    // ---------------- SEND ORDER SUMMARY EMAIL ------------------
+    const orderDetails = {
+      username: user.firstname + ' ' + user.lastname,
+      orderId: '#' + orderId,
+      createdAt: new Date().toISOString().slice(0, 10),
+      address: `${street}, ${town}, ${province}, ${post_code}`,
+      items,
+      amount: total
     };
-  });
+    const template = fs.readFileSync(path.join(__dirname + "/templates", "order.html"), "utf-8");
 
-  const { addr_id, mobile_no, coupon_code } = req.body;
+    // /{{(\w+)}}/g - match {{Word}} globally
+    const renderedTemplate = template.replace(/{{(\w+)}}/g, (match, key) => {
+      console.log({ match, key })
+      return orderDetails[key] || match;
+    });
 
-  const addr = await addressModel.findById(addr_id);
-  if (!addr) return next(new ErrorHandler("Address not found", 404));
+    await sendEmail({
+      email: user.email,
+      subject: 'Order Summary',
+      message: renderedTemplate
+    });
+    // --------------------------------------------------------
+    await session.commitTransaction();
+    res.status(200).json({ message: "Order created!", savedOrder });
 
-  const { province, town, street, post_code, unit } = addr;
-  // const [charge, _] = calc_shipping(total, addr, next);
-  const charge = 0;
-
-  const unique_id = uuid();
-  const orderId = unique_id.slice(0, 6);
-
-  console.log("orderId ", orderId);
-  console.log('order create', req.body);
-
-  if (coupon_code) {
-    const coupon = await couponModel.findOne({ user: userId, _id: coupon_code });
-
-    if (!coupon) return next(new ErrorHandler("Invalid coupon or has been expired.", 400));
-    console.log("coupon", coupon);
-    console.log({ now: Date.now(), createdAt: coupon.createdAt, diff: Date.now() - coupon.createdAt })
-
-    if (Date.now() - coupon.createdAt <= 30 * 60 * 60 * 1000) {
-      total -= coupon.amount;
-
-      coupon.status = "used";
-      await coupon.save();
-    }
-    else {
-      coupon.status = "expired";
-      await coupon.save();
-      return next(new ErrorHandler("Coupon is expired.", 401));
-    }
+  } catch (error) {
+    await session.abortTransaction();
+    next(new ErrorHandler(error.message, 400));
+  } finally {
+    session.endSession();
   }
-
-  const user = await userModel.findById(userId);
-  if (!user.free_ship) {
-    total += charge;
-  }
-  // total += charge;
-  const savedOrder = await Order.create({
-    userId: userId,
-    products: products,
-    amount: total,
-    shipping_charge: charge,
-    free_ship: user.free_ship,
-    address: {
-      province,
-      post_code,
-      street,
-      town,
-      // unit,
-      mobile_no
-    },
-    orderId: '#' + orderId,
-  });
-
-  await cartModel.updateOne({ user: req.userId }, { $set: { items: [] } });
-
-  res.status(200).json({ message: "Order created!", savedOrder });
 });
 
 exports.getAll = catchAsyncError(async (req, res, next) => {
