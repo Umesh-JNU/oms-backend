@@ -14,6 +14,11 @@ const categorySchema = new mongoose.Schema(
     category_img: {
       type: String,
     },
+    location: {
+      type: String,
+      default: 'US',
+      enum: ['US', 'CA']
+    }
   },
   { timestamps: true }
 );
@@ -52,22 +57,26 @@ const subProductSchema = new mongoose.Schema(
       ref: "Product",
       required: [true, "Please provide Product reference id"],
     },
-    amount: {
-      type: Number,
-      required: [true, "Please enter the amount of product."],
-    },
+    // amount: {
+    //   type: Number,
+    //   required: [true, "Please enter the amount of product."],
+    // },
     quantity: {
-      us: {
-        type: Number,
-        required: [true, "Please provide a quantity as per US"]
-      },
-      canada: {
-        type: Number,
-        required: [true, "Please provide a quantity as per Canada"]
-      }
+      type: Number,
+      required: [true, "Please provide quantity."]
     },
+    // quantity: {
+    //   us: {
+    //     type: Number,
+    //     required: [true, "Please provide a quantity as per US"]
+    //   },
+    //   canada: {
+    //     type: Number,
+    //     required: [true, "Please provide a quantity as per Canada"]
+    //   }
+    // },
     stock: { type: Boolean, default: false },
-    volume: { type: Number, default: 0 }
+    // volume: { type: Number, default: 0 }
   },
   { timestamps: true }
 );
@@ -75,7 +84,7 @@ const subProdModel = mongoose.model("SubProduct", subProductSchema);
 
 // const aggregate = async (match) => {
 //   console.log({ match });
-const aggregate = async (queryOptions, match) => {
+const aggregate = async (queryOptions, match, catLocationQuery) => {
   console.log({ queryOptions, match });
   return await subProdModel.aggregate([
     {
@@ -103,6 +112,7 @@ const aggregate = async (queryOptions, match) => {
               as: "category"
             }
           },
+          catLocationQuery,
           { $unwind: "$category" }
           // {
           //   $lookup: {

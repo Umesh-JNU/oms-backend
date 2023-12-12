@@ -6,13 +6,31 @@ class APIFeatures {
 
     search(key) {
         if (this.queryStr.keyword) {
-            console.log("sdkjfksdhfk")
             var keyword = {
                 [key]: {
                     $regex: this.queryStr.keyword,
                     $options: "i",
                 }
             }
+        } else {
+            var keyword = {}
+        }
+
+        console.log("keyword", keyword);
+        this.query = this.query.find({ ...keyword });
+        return this;
+    }
+
+    searchUser() {
+        const searchTerm = this.queryStr.keyword;
+        if (searchTerm) {
+            var keyword = {
+                $or: [
+                    { email: { $regex: searchTerm, $options: 'i' } },
+                    { firstname: { $regex: searchTerm, $options: 'i' } },
+                    { lastname: { $regex: searchTerm, $options: 'i' } }
+                ]
+            };
         } else {
             var keyword = {}
         }

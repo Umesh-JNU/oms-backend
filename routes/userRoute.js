@@ -16,6 +16,7 @@ const {
   forgotPassword,
   resetPassword,
   getMyCoupon,
+  update,
 } = require("../controllers/userController");
 const { auth } = require("../middlewares/auth");
 const router = express.Router();

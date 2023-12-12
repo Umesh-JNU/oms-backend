@@ -32,16 +32,18 @@ exports.createOrder = catchAsyncError(async (req, res, next) => {
 
   if (cart?.items.length <= 0)
     return next(new ErrorHandler("Order can't placed. Add product to cart.", 401));
-  console.log(cart.items[0].product);
 
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    // update the product status
-    for (var i in cart.items) {
-      console.log(i, cart.items[i]);
-      const { product, quantity } = cart.items[i];
-      if (quantity > product.volume) {
+    let items = '';
+    const products = [];
+    for (let i = 0; i < cart.items.length; i++) {
+      const item = cart.items[i];
+      console.log("CART ITEM", item);
+
+      const { product, quantity } = item;
+      if (!product.stock) {
         return next(new ErrorHandler("Some of items in your cart is out of stock.", 400));
       }
 
@@ -50,83 +52,33 @@ exports.createOrder = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler("Something went wrong.", 400));
       }
 
-      prod.volume = product.volume - quantity;
-      prod.stock = (product.volume - quantity) > 0;
-      await prod.save({ session });
-      // await subProdModel.findByIdAndUpdate(product._id, { volume: product.volume - quantity });
-    }
-
-    var total = 0;
-    let items = '';
-    const products = cart.items.map((item, i) => {
-      const { product, quantity } = item;
-      const amt = product.amount;
-      const discount = product.pid.sale ? product.pid.sale : 0;
-      const updatedAmount = amt * (1 - discount * 0.01);
-      const subTotal = updatedAmount * quantity;
-      total += subTotal;
-      console.log({ product, quantity, amt, subTotal, discount, updatedAmount });
-
       items += `
       <div class="item">
-        <p><strong>${i + 1}. ${product?.pid?.name}</strong> - $${amt}</p>
-        <p>- Quantity: ${quantity}</p>
-        <p>- Subtotal: $${subTotal}</p>
+        <p><strong>${i + 1}. ${product?.pid?.name}</strong> X ${quantity}</p>
       </div>`;
 
-      return {
+      products.push({
         quantity,
         product: product._doc,
         parent_prod: product.pid._doc,
-        updatedAmount,
-      };
-    });
+      });
+    }
 
-    const { addr_id, mobile_no, coupon_code } = req.body;
+    const { addr_id, mobile_no } = req.body;
 
     const addr = await addressModel.findById(addr_id);
     if (!addr) return next(new ErrorHandler("Address not found", 404));
 
     const { province, town, street, post_code } = addr;
-    // const [charge, _] = calc_shipping(total, addr, next);
-    const charge = 0;
-
     const unique_id = uuid();
     const orderId = unique_id.slice(0, 6);
 
     console.log("orderId ", orderId);
     console.log('order create', req.body);
 
-    if (coupon_code) {
-      const coupon = await couponModel.findOne({ user: userId, _id: coupon_code });
-
-      if (!coupon) return next(new ErrorHandler("Invalid coupon or has been expired.", 400));
-      console.log("coupon", coupon);
-      console.log({ now: Date.now(), createdAt: coupon.createdAt, diff: Date.now() - coupon.createdAt })
-
-      if (Date.now() - coupon.createdAt <= 30 * 60 * 60 * 1000) {
-        total -= coupon.amount;
-
-        coupon.status = "used";
-        await coupon.save({ session });
-      }
-      else {
-        coupon.status = "expired";
-        await coupon.save({ session });
-        return next(new ErrorHandler("Coupon is expired.", 401));
-      }
-    }
-
-    if (!user.free_ship) {
-      total += charge;
-    }
-    // total += charge;
     const savedOrder = (await Order.create([{
       userId: userId,
       products: products,
-      amount: total,
-      shipping_charge: charge,
-      free_ship: user.free_ship,
       address: {
         province,
         post_code,
@@ -146,7 +98,6 @@ exports.createOrder = catchAsyncError(async (req, res, next) => {
       createdAt: new Date().toISOString().slice(0, 10),
       address: `${street}, ${town}, ${province}, ${post_code}`,
       items,
-      amount: total
     };
     const template = fs.readFileSync(path.join(__dirname + "/templates", "order.html"), "utf-8");
 

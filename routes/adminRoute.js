@@ -55,8 +55,8 @@ router.delete("/sub-product/:id", auth, isAdmin, deleteSubProduct);
 // ----------------------------------- IMAGE -----------------------------------------
 const { upload } = require("../utils/s3");
 const {
-//   getStatistics,
-//   getAll,
+  //   getStatistics,
+  //   getAll,
   postSingleImage,
   postMultipleImages,
 } = require("../controllers/adminController");
@@ -76,7 +76,7 @@ router
   .route("/faq/:id")
   .put(auth, isAdmin, updateFaq)
   .delete(auth, isAdmin, deleteFaq);
-  
+
 // ----------------------------------- ORDER -----------------------------------------
 const {
   getAllOrders,
@@ -91,6 +91,23 @@ router
   .route("/order/:id")
   .get(auth, isAdmin, getOrderById)
   .delete(auth, isAdmin, deleteOrder);
+
+// ----------------------------------- CHATS -----------------------------------------
+const {
+  createChat,
+  getAllChats,
+  getChat,
+  sendMessageAdmin,
+  getAccessToken
+} = require("../controllers/chatController");
+
+router.get("/chat/access-token", auth, isAdmin, getAccessToken);
+router.post("/chat/create", auth, isAdmin, createChat);
+router.post("/chat/send-msg", auth, isAdmin, upload.single('file'), sendMessageAdmin);
+
+router.get("/chats/all", auth, isAdmin, getAllChats);
+router.get("/chat/:id", auth, isAdmin, getChat);
+
 module.exports = router;
 
 

@@ -154,12 +154,12 @@ exports.updatePassword = catchAsyncError(async (req, res, next) => {
 
 exports.getAllUsers = catchAsyncError(async (req, res, next) => {
   const apiFeature = new APIFeatures(
-    userModel.find().select({
+    userModel.find({ role: 'user' }).select({
       email: 1, firstname: 1, lastname: 1, mobile_no: 1,
-      role: 1, active: 1
+      role: 1, active: 1, profile_img: 1
     }).sort({ createdAt: -1 }),
     req.query
-  ).search("firstname");
+  ).searchUser();
 
   let users = await apiFeature.query;
   console.log("users", { users });

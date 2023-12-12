@@ -15,11 +15,11 @@ exports.createCategory = catchAsyncError(async (req, res, next) => {
 });
 
 exports.getAllCategories = catchAsyncError(async (req, res, next) => {
-  console.log(req.query)
+  console.log("getAllCategories", req.query)
   const categoryCount = await categoryModel.countDocuments();
   console.log("categoryCount", categoryCount);
   const apiFeature = new APIFeatures(
-    categoryModel.find().sort({ createdAt: -1 }),
+    categoryModel.find(req.query).sort({ createdAt: -1 }),
     req.query
   ).search("name");
 
@@ -71,14 +71,22 @@ exports.deleteCategory = catchAsyncError(async (req, res, next) => {
 
 exports.getAllProducts = catchAsyncError(async (req, res, next) => {
   const { name } = req.params;
-  console.log({ name })
+  const { location } = req.query;
+  console.log({ name, location })
 
+  if (location) {
+    var catLocationQry = {
+      $match: {
+        "category.location": location
+      }
+    }
+  }
   var categoryQry;
   if (name !== 'null') {
     const category = await categoryModel.findOne({ name })
     var categoryQry = { category: mongoose.Types.ObjectId(category._id) };
   }
-  const products = await aggregate([], categoryQry);
+  const products = await aggregate([], categoryQry, catLocationQry);
   // if (id === "64407ccb7d5153dc445477d8") products = await aggregate([], { sale: { $gt: 0 } });
   // else products = await aggregate([], { category: mongoose.Types.ObjectId(category._id) });
 

@@ -21,6 +21,8 @@
     "multer": "^1.4.5-lts.1",
     "node-cron": "^3.0.2",
     "nodemailer": "^6.9.7",
+    "redis": "^4.6.11",
+    "twilio": "^4.19.0",
     "uuidv4": "^6.2.13"
   }
 }

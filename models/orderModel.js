@@ -19,24 +19,24 @@ const orderSchema = new Schema(
           type: Object,
           required: true,
         },
-        updatedAmount: {
-          type: Number,
-        }
+        // updatedAmount: {
+        //   type: Number,
+        // }
       },
     ],
-    amount: {
-      type: Number,
-      required: true,
-      // min: [60, "Order can only be placed for amount at least 60"]
-    },
-    shipping_charge: {
-      type: Number,
-      required: true,
-    },
-    free_ship: {
-      type: Boolean,
-      default: false
-    },
+    // amount: {
+    //   type: Number,
+    //   required: true,
+    //   // min: [60, "Order can only be placed for amount at least 60"]
+    // },
+    // shipping_charge: {
+    //   type: Number,
+    //   required: true,
+    // },
+    // free_ship: {
+    //   type: Boolean,
+    //   default: false
+    // },
     address: {
       province: {
         type: String,
@@ -63,11 +63,11 @@ const orderSchema = new Schema(
         required: true,
       }
     },
-    status: {
-      type: String,
-      default: "in-progress",
-      enum: ["in-progress", "paid", "delivered", "cancelled"],
-    },
+    // status: {
+    //   type: String,
+    //   default: "in-progress",
+    //   enum: ["in-progress", "paid", "delivered", "cancelled"],
+    // },
     orderId: {
       type: String,
       required: true,
