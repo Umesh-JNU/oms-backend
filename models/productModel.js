@@ -85,7 +85,12 @@ const subProdModel = mongoose.model("SubProduct", subProductSchema);
 // const aggregate = async (match) => {
 //   console.log({ match });
 const aggregate = async (queryOptions, match, catLocationQuery) => {
-  console.log({ queryOptions, match });
+  console.log({ queryOptions, match, catLocationQuery });
+  const catQry = [{ $unwind: "$category" }];
+  if (catLocationQuery) {
+    catQry.unshift(catLocationQuery);
+  }
+  console.log({ catQry });
   return await subProdModel.aggregate([
     {
       $group: {
@@ -112,8 +117,8 @@ const aggregate = async (queryOptions, match, catLocationQuery) => {
               as: "category"
             }
           },
-          catLocationQuery,
-          { $unwind: "$category" }
+          ...catQry,
+
           // {
           //   $lookup: {
           //     from: "subcategories",

@@ -70,11 +70,13 @@ const userSchema = new mongoose.Schema(
     },
     dist_mob_no: {
       type: Number,
-      required: [true, "Distributor's Mobile number is required."]
+      required: [true, "Distributor's Mobile number is required."],
+      select: false
     },
-    // free_ship: {
-    //   type: Boolean,
-    //   default: false
+    // country: {
+    //   type: String,
+    //   default: "US",
+    //   enum: ["US", "CA"]
     // },  
     active: {
       type: Boolean,

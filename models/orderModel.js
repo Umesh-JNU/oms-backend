@@ -19,6 +19,10 @@ const orderSchema = new Schema(
           type: Object,
           required: true,
         },
+        variant: {
+          type: String,
+          required: true,
+        }
         // updatedAmount: {
         //   type: Number,
         // }

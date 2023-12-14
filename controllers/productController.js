@@ -122,7 +122,9 @@ exports.getAllProducts = catchAsyncError(async (req, res, next) => {
   }
   else {
     console.log("get product in frontend")
-    var products = await aggregate(queryOptions, match);
+    var products = await aggregate(queryOptions, match, {
+      $match: { "category.location": req.query.location }
+    });
   }
 
   const filteredProductCount = products.length;
@@ -162,6 +164,7 @@ exports.getProductAdmin = catchAsyncError(async (req, res, next) => {
 });
 
 exports.getProduct = catchAsyncError(async (req, res, next) => {
+  console.log("getProduct", req.params)
   const { id } = req.params;
   const products = await aggregate([], { _id: mongoose.Types.ObjectId(id) });
   if (products.length === 0) return next(new ErrorHandler("Product not found", 404));

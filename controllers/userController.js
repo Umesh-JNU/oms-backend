@@ -42,6 +42,8 @@ exports.register = catchAsyncError(async (req, res, next) => {
     const userDetails = {
       name: req.body.firstname + ' ' + req.body.lastname,
       password: req.body.password,
+      dist_name: req.body.dist_name,
+      dist_email: req.body.dist_email
     }
     const template = fs.readFileSync(path.join(__dirname + '/templates', "userRegister.html"), "utf-8");
 
@@ -156,7 +158,7 @@ exports.getAllUsers = catchAsyncError(async (req, res, next) => {
   const apiFeature = new APIFeatures(
     userModel.find({ role: 'user' }).select({
       email: 1, firstname: 1, lastname: 1, mobile_no: 1,
-      role: 1, active: 1, profile_img: 1
+      active: 1, profile_img: 1
     }).sort({ createdAt: -1 }),
     req.query
   ).searchUser();

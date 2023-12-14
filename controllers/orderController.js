@@ -13,12 +13,12 @@ const couponModel = require("../models/couponModel");
 const addressModel = require("../models/addressModel");
 const { calc_shipping } = require("./addressController");
 const userModel = require("../models/userModel");
-const { productModel, subProdModel } = require("../models/productModel");
+const { productModel, subProdModel, categoryModel } = require("../models/productModel");
 
 exports.createOrder = catchAsyncError(async (req, res, next) => {
   const userId = req.userId;
 
-  const user = await userModel.findById(userId);
+  const user = await userModel.findById(userId).select("+firstname +lastname +dist_name +dist_email");
   if (!user) {
     return next(new ErrorHandler("User Not Found.", 404));
   }
@@ -52,15 +52,18 @@ exports.createOrder = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler("Something went wrong.", 400));
       }
 
+      const category = await categoryModel.findById(product.pid.category);
+      const variant = `${product.quantity} ${category.location === 'US' ? 'fl. Oz.' : "ml"}`;
       items += `
       <div class="item">
-        <p><strong>${i + 1}. ${product?.pid?.name}</strong> X ${quantity}</p>
+        <p><strong>${i + 1}. ${product?.pid?.name}</strong>, ${variant} X ${quantity}</p>
       </div>`;
 
       products.push({
         quantity,
         product: product._doc,
         parent_prod: product.pid._doc,
+        variant
       });
     }
 
@@ -98,6 +101,8 @@ exports.createOrder = catchAsyncError(async (req, res, next) => {
       createdAt: new Date().toISOString().slice(0, 10),
       address: `${street}, ${town}, ${province}, ${post_code}`,
       items,
+      dist_name: user.dist_name,
+      dist_email: user.dist_email
     };
     const template = fs.readFileSync(path.join(__dirname + "/templates", "order.html"), "utf-8");
 
@@ -148,8 +153,6 @@ exports.getAllOrders = catchAsyncError(async (req, res, next) => {
     };
   }
 
-  if (req.query.status !== "all") query.status = req.query.status;
-
   console.log("query", query);
   const apiFeature = new APIFeatures(
     Order.find(query).sort({ createdAt: -1 }).populate("userId"),
@@ -169,7 +172,7 @@ exports.getAllOrders = catchAsyncError(async (req, res, next) => {
 exports.getOrderById = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
   console.log("get order", id);
-  const order = await Order.findById(id).sort({ createdAt: -1 }).populate("userId");
+  const order = await Order.findById(id).sort({ createdAt: -1 }).populate("userId", "firstname lastname dist_name dist_email");
 
   if (!order) return next(new ErrorHandler("Order not found.", 404));
 

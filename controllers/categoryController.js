@@ -18,8 +18,12 @@ exports.getAllCategories = catchAsyncError(async (req, res, next) => {
   console.log("getAllCategories", req.query)
   const categoryCount = await categoryModel.countDocuments();
   console.log("categoryCount", categoryCount);
+  const qry = {};
+  if (req.query?.location) {
+    qry = { location: req.query.location }
+  }
   const apiFeature = new APIFeatures(
-    categoryModel.find(req.query).sort({ createdAt: -1 }),
+    categoryModel.find(qry).sort({ createdAt: -1 }),
     req.query
   ).search("name");
 
