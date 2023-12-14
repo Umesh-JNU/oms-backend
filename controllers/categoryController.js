@@ -18,7 +18,7 @@ exports.getAllCategories = catchAsyncError(async (req, res, next) => {
   console.log("getAllCategories", req.query)
   const categoryCount = await categoryModel.countDocuments();
   console.log("categoryCount", categoryCount);
-  const qry = {};
+  let qry = {};
   if (req.query?.location) {
     qry = { location: req.query.location }
   }
