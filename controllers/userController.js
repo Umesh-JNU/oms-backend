@@ -226,7 +226,7 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
 exports.getUser = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
   console.log("get user", id);
-  const user = await userModel.findById(id).select("+dist_name +dist_email +active");
+  const user = await userModel.findById(id).select("+dist_name +dist_email +active +dist_mob_no");
 
   if (!user) return next(new ErrorHandler("User not found.", 404));
 

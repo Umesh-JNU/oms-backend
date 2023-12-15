@@ -108,17 +108,23 @@ router.post("/chat/send-msg", auth, isAdmin, upload.single('file'), sendMessageA
 router.get("/chats/all", auth, isAdmin, getAllChats);
 router.get("/chat/:id", auth, isAdmin, getChat);
 
+// ----------------------------------- BANNER -----------------------------------------
+
+const {
+  createBanner,
+  deleteBanner,
+} = require("../controllers/bannerController");
+
+router.post("/banner/create", auth, isAdmin, createBanner);
+router.delete("/banner/:id", auth, isAdmin, deleteBanner);
+
 module.exports = router;
 
 
 
 
 
-// const {
-//   createPromotion,
-//   updatePromotion,
-//   deletePromotion,
-// } = require("../controllers/promotionController");
+
 // const { allReviews, deleteReview } = require("../controllers/reviewController");
 // const {
 //   createSubCategory,
@@ -154,11 +160,7 @@ module.exports = router;
 // router.get("/review/all", auth, isAdmin, allReviews);
 // router.delete("/review/:id", auth, isAdmin, deleteReview);
 
-// router.post("/promotion/create", auth, isAdmin, createPromotion);
-// router
-//   .route("/promotion/:id")
-//   .put(auth, isAdmin, updatePromotion)
-//   .delete(auth, isAdmin, deletePromotion);
+
 
 // router.post("/quantity/create", auth, isAdmin, createQuantity);
 // router

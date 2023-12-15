@@ -6,10 +6,13 @@ const categorySchema = new mongoose.Schema(
       type: String,
       unique: true,
       required: [true, "Please provide the category's name."],
+      maxLength: [40, "Category Name cannot exceed 30 characters"],
+      minLength: [4, "Category Name should have at least 4 characters"],
     },
     desc: {
       type: String,
       required: [true, "Please describe the category."],
+      maxLength: [250, "Category Description should have maximum 250 characters."]
     },
     category_img: {
       type: String,
@@ -28,6 +31,8 @@ const productSchema = new mongoose.Schema(
   {
     name: {
       type: String,
+      maxLength: [100, "Product Name cannot exceed 30 characters"],
+      minLength: [4, "Product Name should have at least 4 characters"],
       required: [true, "Please provide the product's name."],
     },
     description: {

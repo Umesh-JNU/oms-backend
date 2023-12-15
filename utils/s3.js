@@ -9,7 +9,7 @@ exports.s3Uploadv2 = async (file, dir) => {
   });
 
   let key = `uploads/${Date.now().toString()}-${file.originalname}`;
-  if(dir) {
+  if (dir) {
     key = `${dir}/${Date.now().toString()}-${file.originalname}`
   }
   const param = {
@@ -31,14 +31,34 @@ exports.s3UploadMulti = async (files) => {
   const params = files.map((file) => {
     return {
       Bucket: process.env.AWS_BUCKET_NAME,
-      Key: `uploads/${Date.now().toString()}-${
-        file.originalname ? file.originalname : "not"
-      }`,
+      Key: `uploads/${Date.now().toString()}-${file.originalname ? file.originalname : "not"
+        }`,
       Body: file.buffer,
     };
   });
 
   return await Promise.all(params.map((param) => s3.upload(param).promise()));
+};
+
+exports.s3Delete = async (file, dir) => {
+  const s3 = new S3({
+    accessKeyId: process.env.AWS_ACCESS_KEY,
+    secretAccessKey: process.env.AWS_SECRET_KEY,
+    region: process.env.AWS_BUCKET_REGION,
+  });
+
+  let key = 'uploads' + file.split('uploads')[1];
+  if (dir) {
+    key = dir + file.split(dir)[1];
+  }
+
+  const param = {
+    Bucket: process.env.AWS_BUCKET_NAME,
+    Key: key,
+  };
+
+  console.log({ file, dir, key, param })
+  return await s3.deleteObject(param).promise();
 };
 
 const storage = multer.memoryStorage();
