@@ -15,6 +15,8 @@ const orderModel = require("../models/orderModel");
 const addressModel = require("../models/addressModel");
 const reviewModel = require("../models/reviewModel");
 
+const { updateParticipant } = require("./chatController");
+
 const sendData = (user, statusCode, res) => {
   const token = user.getJWTToken();
 
@@ -128,6 +130,7 @@ exports.updateProfile = catchAsyncError(async (req, res, next) => {
     }
   );
 
+  await updateParticipant(user);
   res.status(200).json({
     user,
   });
@@ -219,7 +222,8 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
     useFindAndModify: false
   });
   if (!user) return next(new ErrorHandler("User not found.", 404));
-
+  
+  await updateParticipant(user);
   res.status(200).json({ user });
 });
 

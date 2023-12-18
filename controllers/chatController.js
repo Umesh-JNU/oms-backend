@@ -3,7 +3,6 @@ const ErrorHandler = require("../utils/errorHandler");
 const chatModel = require("../models/chatModel");
 const userModel = require("../models/userModel");
 
-const { s3Uploadv2 } = require("../utils/s3");
 // const accountSid = process.env.TWILIO_ACCOUNT_SID;
 // const authToken = process.env.TWILIO_AUTH_TOKEN;
 // const serviceSid = process.env.SERVICE_SID;
@@ -72,6 +71,27 @@ const createNewChat = async (userId, adminId, res, next) => {
   res.status(201).json({ success: true, chat });
 };
 
+exports.updateParticipant = async (userInfo) => {
+  let chat = await chatModel.findOne({ user: userInfo._id });
+  if (chat) {
+    try {
+      const participant = await client.conversations.v1.services(serviceSid).conversations(chat.conversationSID)
+        .participants(userInfo._id.toString())
+        .fetch();
+      console.log("UPDATE PARTICIPANT", { participant });
+
+      await client.conversations.v1.services(serviceSid).conversations(chat.conversationSID).participants(participant.sid).update({
+        attributes: JSON.stringify({
+          name: `${userInfo.firstname} ${userInfo.lastname}`,
+          profile_img: userInfo.profile_img
+        }),
+      });
+    } catch (error) {
+      console.log("UPDATE PARTICIPANT ERROR", error);
+    }
+  }
+};
+
 exports.getAccessToken = catchAsyncError(async (req, res, next) => {
   const userId = req.userId;
   const user = await userModel.findById(userId);
@@ -109,97 +129,6 @@ exports.getAccessToken = catchAsyncError(async (req, res, next) => {
   return res.status(200).json({ access_token: token.toJwt(), chat, token });
 });
 
-exports.getUserAllChats = catchAsyncError(async (req, res, next) => {
-  const userId = req.userId;
-  const chats = await chatModel.find({ user: userId }).sort({ active: -1, createdAt: -1 });
-  res.status(200).json({ chats });
-});
-
-exports.getUserChat = catchAsyncError(async (req, res, next) => {
-  const userId = req.userId;
-  console.log("getting all message", { userId });
-
-  const chat = await chatModel.findOne({ user: userId });
-  if (!chat) {
-    return next(new ErrorHandler("Chat Not Found", 404));
-  }
-
-  const allMsg = await client.conversations.v1.services(serviceSid)
-    .conversations(chat.conversationSID)
-    .messages.list()
-  res.status(200).json({ chat, allMsg })
-});
-
-exports.sendMessage = catchAsyncError(async (req, res, next) => {
-  const userId = req.userId;
-  const { chatID, message } = req.body;
-
-  console.log({ chatID, userId });
-  const user = await userModel.findById(userId);
-  if (!user) {
-    return next(new ErrorHandler("User Not Found", 404));
-  }
-
-  // check if there is any active chat
-  chat = await chatModel.findOne({ user: userId, _id: chatID, active: true });
-  if (!chat) {
-    return next(new ErrorHandler("Chat Not Found", 404));
-  }
-
-  let body = {
-    author: user?.firstname + ' ' + user?.lastname,
-  };
-
-  if (req.file) {
-    const results = await s3Uploadv2(req.file, 'chats');
-    const location = results.Location && results.Location;
-    body.body = req.file.originalname;
-    body.attributes = JSON.stringify({
-      url: location,
-      content_type: req.file.mimetype
-    });
-  }
-  else {
-    if (!message) {
-      const allMsg = await client.conversations.v1.services(serviceSid)
-        .conversations(chat.conversationSID)
-        .messages.list()
-
-      return res.status(200).json({ allMsg });
-    }
-    body.body = message;
-  }
-
-  if (!chat.active) {
-    return next(new ErrorHandler("Bad Request", 400));
-  }
-
-  const sentMessage = await client.conversations.v1.services(serviceSid)
-    .conversations(chat.conversationSID)
-    .messages.create(body);
-  console.log({ sentMessage });
-
-  const allMsg = await client.conversations.v1.services(serviceSid)
-    .conversations(chat.conversationSID)
-    .messages.list()
-  res.status(200).json({ allMsg })
-});
-
-exports.endChat = catchAsyncError(async (req, res, next) => {
-  const { chatID } = req.params;
-  const userId = req.userId;
-  console.log({ chatID, userId })
-  const chat = await chatModel.findOneAndUpdate({ user: userId, _id: chatID, active: true }, { active: false }, {
-    new: true,
-    runValidators: true,
-    useFindAndModify: false
-  });
-  if (!chat) {
-    return next(new ErrorHandler("Chat Not Found", 404));
-  }
-  res.status(200).json({ success: true });
-});
-
 exports.createChat = catchAsyncError(async (req, res, next) => {
   const { isAdmin } = req.query;
 
@@ -220,72 +149,17 @@ exports.createChat = catchAsyncError(async (req, res, next) => {
 });
 
 
-// Admin 
-exports.getAllChats = catchAsyncError(async (req, res, next) => {
-  const chats = await chatModel.find({ active: true }).sort({ createdAt: 1 }).populate('user');
-  res.status(200).json({ chats });
-});
+exports.updateReadHorizon = catchAsyncError(async (req, res, next) => {
+  console.log("UPDATE READ HORIZON", req.body);
+  const { convSID } = req.body;
 
-exports.getChat = catchAsyncError(async (req, res, next) => {
-  const { id } = req.params;
-  console.log("getting all message", { id });
+  const lastMsg = await client.conversations.v1.services(serviceSid).conversations(convSID).messages.list({ order: 'desc', limit: 1 });
+  const { index, participantSid } = lastMsg[0];
+  console.log({ lastMsg, index, participantSid });
+  await client.conversations.v1.services(serviceSid).conversations(convSID).participants(participantSid).update({
+    lastReadMessageIndex: index,
+    lastReadTimestamp: new Date()
+  });
 
-  const chat = await chatModel.findById(id);
-  if (!chat) {
-    return next(new ErrorHandler("Chat Not Found", 404));
-  }
-  const allMsg = await client.conversations.v1.services(serviceSid)
-    .conversations(chat.conversationSID)
-    .messages.list()
-  res.status(200).json({ allMsg })
-});
-
-exports.sendMessageAdmin = catchAsyncError(async (req, res, next) => {
-  console.log("body", req.body, req.file);
-  const { chatID, message } = req.body;
-
-  const chat = await chatModel.findById(chatID);
-  if (!chat) {
-    return next(new ErrorHandler("Chat Not Found", 404));
-  }
-
-  const user = req.user;
-  let body = {
-    author: user?.firstname + ' ' + user?.lastname,
-  };
-
-  if (req.file) {
-    const results = await s3Uploadv2(req.file, 'chats');
-    const location = results.Location && results.Location;
-    body.body = req.file.originalname;
-    body.attributes = JSON.stringify({
-      url: location,
-      content_type: req.file.mimetype
-    });
-  }
-  else {
-    if (!message) {
-      const allMsg = await client.conversations.v1.services(serviceSid)
-        .conversations(chat.conversationSID)
-        .messages.list()
-
-      return res.status(200).json({ allMsg });
-    }
-    body.body = message;
-  }
-
-  if (!chat.active) {
-    return next(new ErrorHandler("Bad Request", 400));
-  }
-
-  console.log({ body })
-  const sentMessage = await client.conversations.v1.services(serviceSid)
-    .conversations(chat.conversationSID)
-    .messages.create(body);
-  console.log({ sentMessage });
-
-  const allMsg = await client.conversations.v1.services(serviceSid)
-    .conversations(chat.conversationSID)
-    .messages.list()
-  res.status(200).json({ allMsg })
+  res.status(200).json({ success: true });
 });

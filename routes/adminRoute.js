@@ -95,21 +95,15 @@ router
 // ----------------------------------- CHATS -----------------------------------------
 const {
   createChat,
-  getAllChats,
-  getChat,
-  sendMessageAdmin,
-  getAccessToken
+  getAccessToken,
+  updateReadHorizon
 } = require("../controllers/chatController");
 
 router.get("/chat/access-token", auth, isAdmin, getAccessToken);
 router.post("/chat/create", auth, isAdmin, createChat);
-router.post("/chat/send-msg", auth, isAdmin, upload.single('file'), sendMessageAdmin);
-
-router.get("/chats/all", auth, isAdmin, getAllChats);
-router.get("/chat/:id", auth, isAdmin, getChat);
+router.put("/chat/read-horizon", auth, isAdmin, updateReadHorizon);
 
 // ----------------------------------- BANNER -----------------------------------------
-
 const {
   createBanner,
   deleteBanner,

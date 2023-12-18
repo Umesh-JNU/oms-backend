@@ -53,7 +53,7 @@ exports.updateCategory = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
   const { name } = req.body
   // Check if another category with the same name exists
-  const existingCategory = await categoryModel.findOne({ name });
+  const existingCategory = await categoryModel.findOne({ name, _id: { $ne: mongoose.Types.ObjectId(id) } });
 
   if (existingCategory) {
     return next(new ErrorHandler("Category with the same name already exists.", 400));
