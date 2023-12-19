@@ -9,9 +9,7 @@ const sendEmail = require("../utils/sendEmail");
 const catchAsyncError = require("../utils/catchAsyncError");
 const APIFeatures = require("../utils/apiFeatures");
 const ErrorHandler = require("../utils/errorHandler");
-const couponModel = require("../models/couponModel");
 const addressModel = require("../models/addressModel");
-const { calc_shipping } = require("./addressController");
 const userModel = require("../models/userModel");
 const { productModel, subProdModel, categoryModel } = require("../models/productModel");
 

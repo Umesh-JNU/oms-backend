@@ -27,9 +27,6 @@ const faqRoute = require('./routes/faqRoute');
 const chatRoute = require('./routes/chatRoute');
 const bannerRoute = require('./routes/bannerRoute');
 
-// const quantityRoute = require('./routes/quantityRoute');
-// const reviewRoute = require('./routes/reviewRoute');
-// const shippingRoute = require('./routes/shippingRoute');
 
 app.use("/api/admin", adminRoute);
 app.use("/api/user", userRoute);
@@ -40,9 +37,7 @@ app.use("/api/order", orderRoute);
 app.use("/api/faq", faqRoute);
 app.use("/api/chat", chatRoute);
 app.use("/api/banner", bannerRoute);
-// app.use("/api/quantity", quantityRoute);
-// app.use("/api/review", reviewRoute);
-// app.use("/api/shipping", shippingRoute);
+
 
 app.all('*', async (req, res) => {
   res.status(404).json({ error: { message: "Not Found. Kindly Check the API path as well as request type" } })

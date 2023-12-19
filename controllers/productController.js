@@ -1,7 +1,5 @@
 const mongoose = require("mongoose");
 const { productModel, subProdModel, aggregate } = require("../models/productModel");
-const reviewModel = require("../models/reviewModel");
-const saleModel = require("../models/saleModel");
 const cartModel = require("../models/cartModel");
 const APIFeatures = require("../utils/apiFeatures");
 const catchAsyncError = require("../utils/catchAsyncError");

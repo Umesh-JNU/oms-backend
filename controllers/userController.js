@@ -10,10 +10,8 @@ const sendEmail = require("../utils/sendEmail");
 
 const userModel = require("../models/userModel");
 const cartModel = require("../models/cartModel");
-const couponModel = require("../models/couponModel");
 const orderModel = require("../models/orderModel");
 const addressModel = require("../models/addressModel");
-const reviewModel = require("../models/reviewModel");
 
 const { updateParticipant } = require("./chatController");
 

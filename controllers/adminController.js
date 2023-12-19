@@ -1,10 +1,8 @@
 const orderModel = require("../models/orderModel");
 const {
   categoryModel,
-  subCategoryModel,
   productModel,
 } = require("../models/productModel");
-const quantityModel = require("../models/quantityModel");
 const userModel = require("../models/userModel");
 const catchAsyncError = require("../utils/catchAsyncError");
 const ErrorHandler = require("../utils/errorHandler");
