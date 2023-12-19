@@ -6,6 +6,7 @@ const { auth, isAdmin } = require("../middlewares/auth");
 // ------------------------------ USER ---------------------------------
 const {
   getAllUsers,
+  getChatUser,
   getUser,
   updateUser,
   deleteUser,
@@ -14,6 +15,7 @@ const {
 
 router.post("/user/create", auth, isAdmin, register);
 router.get("/user/all", auth, isAdmin, getAllUsers);
+router.get("/user/chat", auth, isAdmin, getChatUser);
 router.route("/user/:id")
   .get(auth, isAdmin, getUser)
   .put(auth, isAdmin, updateUser)

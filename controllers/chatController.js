@@ -130,22 +130,29 @@ exports.getAccessToken = catchAsyncError(async (req, res, next) => {
 });
 
 exports.createChat = catchAsyncError(async (req, res, next) => {
-  const { isAdmin } = req.query;
-
-  if (isAdmin && req.user) {
-    console.log("Admin create chat")
-    const user = await userModel.findById(req.body.userId);
-    if (!user) {
-      return next(new ErrorHandler("User Not Found.", 404));
-    }
-
-    return await createNewChat(req.body.userId, req.userId, res, next);
+  const { userId } = req.body;
+  const user = await userModel.findById(userId);
+  if (!user) {
+    return next(new ErrorHandler("User Not Found", 404));
   }
 
-  console.log("User create chat");
-  const admin = await userModel.findOne({ role: 'admin' });
-  await chatModel.updateMany({ user: req.userId }, { active: false });
-  await createNewChat(req.userId, admin._id.toString(), res, next);
+  let chat = await chatModel.findOne({ user: userId });
+  if (!chat) {
+    const admin = await userModel.findOne({ role: 'admin' });
+
+    const convSID = await conversationSID();
+    const participant1 = await createParticipant(convSID, user);
+    const participant2 = await createParticipant(convSID, admin);
+
+    // create new chat
+    chat = await chatModel.create({
+      user: userId,
+      conversationSID: convSID,
+    });
+    console.log({ chat, participant1, participant2 })
+  }
+
+  return res.status(201).json({ success: true });
 });
 
 

@@ -14,6 +14,7 @@ const orderModel = require("../models/orderModel");
 const addressModel = require("../models/addressModel");
 
 const { updateParticipant } = require("./chatController");
+const chatModel = require('../models/chatModel');
 
 const sendData = (user, statusCode, res) => {
   const token = user.getJWTToken();
@@ -178,6 +179,22 @@ exports.getAllUsers = catchAsyncError(async (req, res, next) => {
   res.status(200).json({ users, filteredUserCount });
 });
 
+exports.getChatUser = catchAsyncError(async (req, res, next) => {
+  const chatId = (await chatModel.distinct('user')).map(String);
+
+  const apiFeature = new APIFeatures(
+    userModel.find({ role: 'user', _id: { $nin: chatId } }).select({
+      email: 1, firstname: 1, lastname: 1, mobile_no: 1,
+      active: 1, profile_img: 1
+    }).sort({ createdAt: -1 }),
+    req.query
+  ).searchUser();
+
+  let users = await apiFeature.query;
+  console.log("users", users, chatId);
+  res.status(200).json({ users });
+});
+
 exports.deleteUser = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
   const user = await userModel.findOne({ _id: id });
@@ -220,7 +237,7 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
     useFindAndModify: false
   });
   if (!user) return next(new ErrorHandler("User not found.", 404));
-  
+
   await updateParticipant(user);
   res.status(200).json({ user });
 });
