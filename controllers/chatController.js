@@ -3,14 +3,17 @@ const ErrorHandler = require("../utils/errorHandler");
 const chatModel = require("../models/chatModel");
 const userModel = require("../models/userModel");
 
-// const accountSid = process.env.TWILIO_ACCOUNT_SID;
-// const authToken = process.env.TWILIO_AUTH_TOKEN;
-// const serviceSid = process.env.SERVICE_SID;
-const accountSid = process.env.ACCOUNT_SID;
-const authToken = process.env.AUTH_TOKEN;
-const serviceSid = process.env.S_SID;
-const api_key = process.env.API_KEY;
-const api_secret_key = process.env.API_SECRET_KEY;
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const serviceSid = process.env.SERVICE_SID;
+const api_key = process.env.TWILIO_API_KEY;
+const api_secret_key = process.env.TWILIO_SECRET_KEY;
+
+// const accountSid = process.env.ACCOUNT_SID;
+// const authToken = process.env.AUTH_TOKEN;
+// const serviceSid = process.env.S_SID;
+// const api_key = process.env.API_KEY;
+// const api_secret_key = process.env.API_SECRET_KEY;
 
 const client = require('twilio')(accountSid, authToken);
 client.conversations.v1.services(serviceSid).configuration().update({
