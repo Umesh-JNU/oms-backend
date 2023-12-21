@@ -72,12 +72,31 @@ exports.register = catchAsyncError(async (req, res, next) => {
   }
 });
 
-// exports.getMyCoupon = catchAsyncError(async (req, res, next) => {
-//   console.log("my coupons", req.userId);
-//   const userId = req.userId;
-//   const coupons = await couponModel.find({ user: userId });
-//   res.status(200).json({ coupons });
-// });
+exports.adminLogin = catchAsyncError(async (req, res, next) => {
+  console.log("admin login", req.body);
+  const { email, password } = req.body;
+
+  if (!email || !password)
+    return next(new ErrorHandler("Please enter your email and password", 400));
+
+  const user = await userModel.findOne({ email }).select("+password +active");
+  if (!user) {
+    return next(new ErrorHandler("Invalid email or password", 401));
+  }
+
+  console.log({ user });
+  if (user.active === false) {
+    return next(new ErrorHandler("Your account is deactivated. Kindly reach out Manufacturer", 400));
+  }
+  const isPasswordMatched = await user.comparePassword(password);
+  if (!isPasswordMatched)
+    return next(new ErrorHandler("Invalid email or password!", 401));
+
+  if (user.role !== 'admin') {
+    return next(new ErrorHandler("Only Admin can access the portal.", 401));
+  }
+  sendData(user, 200, res);
+});
 
 exports.login = catchAsyncError(async (req, res, next) => {
   console.log("user login", req.body);

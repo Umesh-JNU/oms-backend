@@ -12,8 +12,10 @@ const {
   deleteUser,
   register,
   updateAdminProfile,
+  adminLogin
 } = require("../controllers/userController");
 
+router.post("/login", adminLogin);
 router.put("/update-profile", auth, isAdmin, updateAdminProfile);
 router.post("/user/create", auth, isAdmin, register);
 router.get("/user/all", auth, isAdmin, getAllUsers);
@@ -117,68 +119,3 @@ router.post("/banner/create", auth, isAdmin, createBanner);
 router.delete("/banner/:id", auth, isAdmin, deleteBanner);
 
 module.exports = router;
-
-
-
-
-
-
-// const { allReviews, deleteReview } = require("../controllers/reviewController");
-// const {
-//   createSubCategory,
-//   updateSubCategory,
-//   deleteSubCategory,
-// } = require("../controllers/subCategoryController");
-
-// const {
-//   updateQuantity,
-//   deleteQuantity,
-//   createQuantity,
-// } = require("../controllers/quantityController");
-
-// const {
-//   createShipping,
-//   updateShipping,
-//   deleteShipping
-// } = require("../controllers/shippingController");
-
-// const { auth, isAdmin } = require("../middlewares/auth");
-// const { createSale, getAllSale, getSale, updateSale, deleteSale } = require("../controllers/saleController");
-
-// router.get("/all", getAll);
-// router.get("/statistics/:time", auth, isAdmin, getStatistics);
-// router.post("/login", adminLogin);
-
-// router.post("/subCategory/create", auth, isAdmin, createSubCategory);
-// router
-//   .route("/subCategory/:id")
-//   .put(auth, isAdmin, updateSubCategory)
-//   .delete(auth, isAdmin, deleteSubCategory);
-
-// router.get("/review/all", auth, isAdmin, allReviews);
-// router.delete("/review/:id", auth, isAdmin, deleteReview);
-
-
-
-// router.post("/quantity/create", auth, isAdmin, createQuantity);
-// router
-//   .route("/quantity/:id")
-//   .put(auth, isAdmin, updateQuantity)
-//   .delete(auth, isAdmin, deleteQuantity);
-
-// router.post("/sale/create", auth, isAdmin, createSale);
-// router.get("/sale/all", auth, isAdmin, getAllSale);
-// router
-//   .route("/sale/:id")
-//   .get(auth, isAdmin, getSale)
-//   .put(auth, isAdmin, updateSale)
-//   .delete(auth, isAdmin, deleteSale);
-
-// router.post("/shipping/create", auth, isAdmin, createShipping);
-// router
-//   .route("/shipping/:id")
-//   .put(auth, isAdmin, updateShipping)
-//   .delete(auth, isAdmin, deleteShipping);
-
-
-
