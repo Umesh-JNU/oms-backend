@@ -135,6 +135,27 @@ exports.updateProfile = catchAsyncError(async (req, res, next) => {
   });
 });
 
+exports.updateAdminProfile = catchAsyncError(async (req, res, next) => {
+  console.log("update admin profile", req.body);
+  const { firstname, lastname, mobile_no, email, password } = req.body;
+
+  const user = await userModel.findById(req.userId);
+  user.firstname = firstname;
+  user.lastname = lastname;
+  user.mobile_no = mobile_no;
+  user.email = email;
+  if (password) {
+    user.password = password;
+  }
+  await user.save();
+
+  res.status(200).json({
+    message: "Profile Updated Successfully",
+    user
+  });
+});
+
+
 exports.updatePassword = catchAsyncError(async (req, res, next) => {
   console.log("reset password", req.body);
   const userId = req.userId;

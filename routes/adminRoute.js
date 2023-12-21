@@ -11,8 +11,10 @@ const {
   updateUser,
   deleteUser,
   register,
+  updateAdminProfile,
 } = require("../controllers/userController");
 
+router.put("/update-profile", auth, isAdmin, updateAdminProfile);
 router.post("/user/create", auth, isAdmin, register);
 router.get("/user/all", auth, isAdmin, getAllUsers);
 router.get("/user/chat", auth, isAdmin, getChatUser);
